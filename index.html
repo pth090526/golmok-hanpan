@@ -26,6 +26,18 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
 .hand{display:flex;gap:12px;justify-content:center;margin:10px 0 0}
 .hand div{background:#5a3b22;border-radius:14px;padding:10px 14px;font-size:18px}
 .ok{color:#9be37a}.no{color:#ff9a7a}
+.ov{justify-content:safe center}
+.daily{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d;width:min(420px,92vw);margin:8px 0 4px;font-size:26px}
+.daily small{display:block;font-size:16px;font-weight:400;margin-top:4px}
+.small{font-size:18px;padding:10px 18px;min-width:0}
+.fl{display:block;width:min(380px,90vw);text-align:left;font-size:20px;font-weight:700;margin:12px 0 0}
+.fl input{display:block;width:100%;box-sizing:border-box;font-size:26px;padding:12px 14px;border-radius:12px;border:2px solid #8f5214;background:#fbeed7;color:#2b1d12;margin-top:6px;font-family:inherit}
+.agebox{display:flex;gap:8px;align-items:center;margin-top:6px}.agebox input{margin:0;text-align:center}.agebox button{margin:0;min-width:64px;padding:12px 0;font-size:30px}
+.seg{display:flex;gap:8px;margin-top:6px}.seg button{flex:1;margin:0;min-width:0;font-size:20px;padding:12px 0;background:#6b4a2e;box-shadow:0 4px 0 #3d2a19}.seg button.on{background:#e0892b;box-shadow:0 4px 0 #8f5214}
+.rec{width:min(420px,92vw);text-align:left}.rec h3{font-size:19px;color:#ffd58a;margin:16px 0 6px}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.sum div{background:#5a3b22;border-radius:12px;padding:10px 4px;font-size:16px}.sum b{display:block;font-size:28px;color:#ffd58a}
+.rrow{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:18px}
+.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:16px}.bl{width:48px}.bt{flex:1;height:14px;background:#3d2a19;border-radius:7px;overflow:hidden}.bt i{display:block;height:100%;background:#e0892b}.bv{width:44px;text-align:right}
 #cardImg{width:min(320px,80vw);border-radius:12px;margin:10px 0;box-shadow:0 6px 20px rgba(0,0,0,.4);-webkit-touch-callout:default;user-select:auto}
 </style>
 </head>
@@ -34,13 +46,32 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
 
 <div id="startOv" class="ov">
   <h1>골목한판</h1>
-  <p class="sub">추억의 골목에서 한 판!</p>
+  <p class="big" id="greet" style="margin:0">추억의 골목에서 한 판!</p>
+  <p id="streak" style="margin:2px 0;color:#ffb36b;font-weight:700"></p>
+  <button id="dailyBtn" class="daily"></button>
   <div class="hand"><div>👈 왼쪽은 <b>왼손</b></div><div><b>오른손</b>은 오른쪽 👉</div></div>
-  <p class="big" style="margin-top:12px">🔍 배경도 잘 봐두세요!<br><span class="sub">끝나면 눈썰미 퀴즈가 나와요</span></p>
+  <p class="sub" style="margin-top:8px">🔍 배경도 잘 봐두세요! 끝나면 눈썰미 퀴즈가 나와요</p>
   <div class="stages" id="stageList"></div>
-  <p class="sub" style="margin-top:14px">소리를 켜고 해주세요 · PC는 F / J 키</p>
-  <button id="calibOpen" class="alt" style="font-size:18px;padding:10px 18px">🎧 소리가 늦게 들리면? 박자 맞추기</button>
+  <div><button id="recOpen" class="alt small">📒 내 기록</button><button id="profOpen" class="alt small">👤 내 정보</button></div>
+  <p class="sub" style="margin-top:10px">소리를 켜고 해주세요 · PC는 F / J 키</p>
+  <button id="calibOpen" class="alt small">🎧 소리가 늦게 들리면? 박자 맞추기</button>
   <p class="sub" id="offsetNow"></p>
+</div>
+
+<div id="profOv" class="ov hidden">
+  <h2>👤 반가워요!</h2>
+  <p class="sub">회원가입 없이, 이 휴대폰에만 저장돼요</p>
+  <label class="fl">별명<input id="pNick" maxlength="10" placeholder="예: 안양 김씨" autocomplete="off"></label>
+  <div class="fl">나이<div class="agebox"><button id="ageMinus" class="alt">−</button><input id="pAge" type="number" inputmode="numeric" min="10" max="110" placeholder="65"><button id="agePlus" class="alt">＋</button></div></div>
+  <div class="fl">성별 <span class="sub">(선택)</span><div class="seg" id="pGender"><button data-g="m">남자</button><button data-g="f">여자</button><button data-g="">안 알려줌</button></div></div>
+  <button id="profSave" style="margin-top:20px">저장하고 시작</button>
+  <button id="profSkip" class="alt small">나중에 할게요</button>
+</div>
+
+<div id="recOv" class="ov hidden">
+  <h2>📒 내 기록</h2>
+  <div id="recBody" class="rec"></div>
+  <button id="recClose" class="alt">닫기</button>
 </div>
 
 <div id="calibOv" class="ov hidden">
@@ -99,6 +130,9 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const LEAD=1.9,WIN_PERF=0.08,WIN_GOOD=0.18;
 let ac=null,start=0,BEAT=0.625,END_T=40,notes=[],walkers=[],pops=[],sparks=[],state='idle',score,hammer={L:-9,R:-9},noiseBuf,stage=null,quiz=null,lastResult=null,errs=[];
+let DATA={profile:null,asked:false,history:[],best:{},streak:0,lastDate:'',plays:0};
+try{const v=JSON.parse(localStorage.getItem('gh_data'));if(v&&typeof v==='object')DATA=Object.assign(DATA,v);}catch(e){}
+function save(){try{localStorage.setItem('gh_data',JSON.stringify(DATA));}catch(e){}}
 let OFFSET=0;try{OFFSET=parseFloat(localStorage.getItem('gh_offset'))||0;}catch(e){}
 function now(){return ac?ac.currentTime-(ac.outputLatency||0)-start:-3;}
 function songT(){return now()-OFFSET;}
@@ -279,7 +313,7 @@ function loop(){const s=stage||S1,st=state==='play'?songT():0;
 
 // ===== 흐름 =====
 const $=id=>document.getElementById(id);
-const hideAll=()=>['startOv','quizOv','resultOv','cardOv','calibOv'].forEach(i=>$(i).classList.add('hidden'));
+const hideAll=()=>['startOv','quizOv','resultOv','cardOv','calibOv','profOv','recOv'].forEach(i=>$(i).classList.add('hidden'));
 $('stageList').innerHTML=STAGES.map((s,i)=>`<button data-i="${i}">${s.icon} ${i+1}. ${s.name}<small>${s.desc}</small></button>`).join('');
 $('stageList').addEventListener('click',e=>{const b=e.target.closest('button');if(b)startGame(STAGES[+b.dataset.i]);});
 function startGame(s){stage=s;BEAT=60/s.bpm;END_T=15*4*BEAT+2.2;
@@ -289,11 +323,13 @@ function endGame(){state='quiz';$('qText').innerHTML=quiz.q;$('qSub').textConten
   quiz.options.forEach(o=>{const b=document.createElement('button');b.textContent=o.label;b.onclick=()=>showResult(o.value);box.appendChild(b);});
   $('quizOv').classList.remove('hidden');}
 function showResult(v){state='result';hideAll();const total=notes.length,acc=Math.max(0,Math.round((score.perfect+score.good*0.7)/total*100)-Math.max(0,score.whiff-5)),ok=v===quiz.answer;
-  const rank=stage.ranks[acc>=85?0:acc>=60?1:2],age=quickAge(acc);lastResult={acc,ok,rank,stage,age};
-  $('rTitle').innerHTML=`${rank}<br><span style="font-size:22px;color:#fbeed7">⚡ 재미로 보는 순발력 나이</span><br><span style="font-size:54px;color:#ffd58a">${age}세</span>`;
+  const rank=stage.ranks[acc>=85?0:acc>=60?1:2],age=quickAge(acc),P=DATA.profile||{},real=P.age||0,diff=real?real-age:0;
+  lastResult={acc,ok,rank,stage,age,real,diff,nick:P.nick||''};const newBest=record(lastResult);
+  const ageLine=!real?'':diff>0?`<br><span style="font-size:22px;color:#9be37a">실제 ${real}세보다 ${diff}살 젊어요!</span>`:diff===0?'<br><span style="font-size:22px">실제 나이랑 똑같아요!</span>':'<br><span style="font-size:20px">다음 판엔 더 젊어질 거예요!</span>';
+  $('rTitle').innerHTML=`${rank}<br><span style="font-size:22px;color:#fbeed7">⚡ 재미로 보는 순발력 나이</span><br><span style="font-size:54px;color:#ffd58a">${age}세</span>${ageLine}`;
   $('rQuiz').innerHTML=ok?`<span class="ok">⭕ 정답! (${quiz.answerText})</span>`:`<span class="no">❌ 아쉬워요! 정답은 ${quiz.answerText}</span>`;
   $('rScore').innerHTML=`${stage.skill} 정확도 <b>${acc}점</b><br>${stage.hitText[0]} ${score.perfect} · 좋아요 ${score.good} · 아이고 ${score.miss}${score.whiff>5?` · 헛손질 ${score.whiff}`:''}`;
-  $('rMsg').textContent=ok&&acc>=85?'손도 눈도 아주 좋으시네요!':ok?'눈썰미가 대단하세요! 손은 조금 더~':acc>=85?`${stage.skill}은 완벽! 다음엔 배경도 살펴보세요`:'한 판 더 하면 금방 늘어요!';
+  $('rMsg').textContent=(newBest?'🎉 새 최고 기록! ':'')+(ok&&acc>=85?'손도 눈도 아주 좋으시네요!':ok?'눈썰미가 대단하세요! 손은 조금 더~':acc>=85?`${stage.skill}은 완벽! 다음엔 배경도 살펴보세요`:'한 판 더 하면 금방 늘어요!');
   $('resultOv').classList.remove('hidden');}
 // 재미용: 박자 오차(평균)와 정확도로 계산, 20~75세로 제한 (의학적 의미 없음)
 function quickAge(acc){if(!errs.length)return 75;const ms=errs.reduce((a,b)=>a+b,0)/errs.length*1000;
@@ -305,7 +341,7 @@ const CAL_BPM=100,CAL_N=12,CAL_SKIP=4;let calTaps=[],calStart=0,calTimer=null;
 function showOffset(){$('offsetNow').textContent=OFFSET?`현재 보정값: ${OFFSET>0?'+':''}${OFFSET.toFixed(2)}초`:'';}
 showOffset();
 $('calibOpen').onclick=()=>{hideAll();$('calibMsg').textContent='';$('calibOv').classList.remove('hidden');state='calib';};
-$('calibClose').onclick=()=>{clearTimeout(calTimer);state='idle';hideAll();showOffset();$('startOv').classList.remove('hidden');};
+$('calibClose').onclick=()=>{clearTimeout(calTimer);goHome();};
 $('calibReset').onclick=()=>{OFFSET=0;try{localStorage.removeItem('gh_offset');}catch(e){}$('calibMsg').textContent='보정값을 0으로 되돌렸어요';};
 $('calibStart').onclick=()=>{ensureAudio();calTaps=[];const b=60/CAL_BPM;calStart=ac.currentTime+0.5;
   for(let i=0;i<CAL_N;i++)tone(i%4===0?1500:1150,calStart+i*b,0.07,'square',0.12);
@@ -319,7 +355,7 @@ function finishCal(){const b=60/CAL_BPM,d=[];
   d.sort((a,b)=>a-b);const med=d[Math.floor(d.length/2)];OFFSET=Math.max(-0.3,Math.min(0.3,Math.round(med*100)/100));
   try{localStorage.setItem('gh_offset',String(OFFSET));}catch(e){}
   $('calibMsg').textContent=Math.abs(OFFSET)<0.03?'박자가 딱 맞아요! 보정 필요 없어요 👍':`보정 완료! (${OFFSET>0?'+':''}${OFFSET.toFixed(2)}초) 이제 판정이 맞춰져요`;}
-$('menuBtn').onclick=()=>{state='idle';hideAll();$('startOv').classList.remove('hidden');};
+$('menuBtn').onclick=goHome;
 
 // ===== 공유 카드 =====
 function makeCard(r){const c=document.createElement('canvas');c.width=1080;c.height=1080;const x=c.getContext('2d');
@@ -327,23 +363,64 @@ function makeCard(r){const c=document.createElement('canvas');c.width=1080;c.hei
   x.fillStyle='#e9c27f';x.fillRect(40,700,1000,340);x.strokeStyle='#5a3b22';x.lineWidth=10;x.strokeRect(40,40,1000,1000);
   x.textAlign='center';x.textBaseline='middle';x.fillStyle='#7a2e1e';x.font='bold 64px sans-serif';x.fillText('골목한판',540,140);
   x.fillStyle='#5a3b22';x.font='bold 46px sans-serif';x.fillText(`${r.stage.icon} ${r.stage.name}`,540,230);
-  x.fillStyle='#2b1d12';x.font='bold 58px sans-serif';x.fillText(r.rank.replace(/^\S+\s/,''),540,330);
-  x.font='bold 44px sans-serif';x.fillText('⚡ 내 순발력 나이',540,420);
-  x.fillStyle='#e0892b';x.font='bold 150px sans-serif';x.fillText(r.age+'세',540,535);
-  x.fillStyle='#5a3b22';x.font='bold 42px sans-serif';x.fillText(`${r.stage.skill} 정확도 ${r.acc}점`,540,640);
-  x.font='28px sans-serif';x.fillText('(재미로 보는 숫자예요)',540,682);
+  x.fillStyle='#2b1d12';x.font='bold 54px sans-serif';x.fillText((r.nick?r.nick+'님 · ':'')+r.rank.replace(/^\S+\s/,''),540,315);
+  x.font='bold 42px sans-serif';x.fillText('⚡ 내 순발력 나이',540,395);
+  x.fillStyle='#e0892b';x.font='bold 140px sans-serif';x.fillText(r.age+'세',540,495);
+  if(r.diff>0){x.fillStyle='#3c7a2a';x.font='bold 44px sans-serif';x.fillText(`실제 ${r.real}세보다 ${r.diff}살 젊어요!`,540,585);}
+  x.fillStyle='#5a3b22';x.font='bold 38px sans-serif';x.fillText(`${r.stage.skill} 정확도 ${r.acc}점`,540,r.diff>0?640:600);
+  x.font='26px sans-serif';x.fillText('(재미로 보는 숫자예요)',540,r.diff>0?678:645);
   x.fillStyle=r.ok?'#3c7a2a':'#a0442f';x.font='bold 54px sans-serif';x.fillText(r.ok?'⭕ 눈썰미 퀴즈 정답!':'❌ 눈썰미 퀴즈는 아깝게…',540,790);
   x.fillStyle='#2b1d12';x.font='bold 44px sans-serif';x.fillText('나도 한 판 해볼까? 👇',540,900);
   x.font='36px sans-serif';x.fillText(SITE.replace('https://',''),540,965);return c;}
-async function share(){if(!lastResult)return;const c=makeCard(lastResult),text=`[골목한판] ${lastResult.stage.name} — 내 순발력 나이 ${lastResult.age}세! 나도 한 판 해볼까?`;
+async function share(){if(!lastResult)return;const c=makeCard(lastResult),text=shareText();
   try{const blob=await new Promise(res=>c.toBlob(res,'image/png'));const file=new File([blob],'golmok-hanpan.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:text+'\n'+SITE});return;}}
   catch(e){if(e&&e.name==='AbortError')return;}
   $('cardImg').src=c.toDataURL('image/png');$('copyMsg').textContent='';hideAll();$('cardOv').classList.remove('hidden');}
 $('shareBtn').onclick=share;
 $('cardClose').onclick=()=>{hideAll();$('resultOv').classList.remove('hidden');};
-$('copyBtn').onclick=async()=>{const text=`[골목한판] ${lastResult.stage.name} — 내 순발력 나이 ${lastResult.age}세! 나도 한 판 해볼까?\n${SITE}`;
+$('copyBtn').onclick=async()=>{const text=shareText()+'\n'+SITE;
   try{await navigator.clipboard.writeText(text);$('copyMsg').textContent='복사됐어요! 카톡에 붙여넣기 하세요';}catch(e){$('copyMsg').textContent=SITE;}};
+
+function shareText(){const r=lastResult;return `[골목한판] ${r.stage.name} — 내 순발력 나이 ${r.age}세!${r.diff>0?` (실제보다 ${r.diff}살 젊음)`:''} 나도 한 판 해볼까?`;}
+
+// ===== 프로필 · 기록 · 오늘의 한판 (기기 저장) =====
+function dstr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function today(){return dstr(new Date());}
+function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return dstr(d);}
+function dailyStage(){const d=new Date(),n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);return STAGES[n%STAGES.length];}
+function streakNow(){return(DATA.lastDate===today()||DATA.lastDate===yesterday())?DATA.streak:0;}
+function record(r){const t=today();if(DATA.lastDate!==t){DATA.streak=DATA.lastDate===yesterday()?DATA.streak+1:1;DATA.lastDate=t;}
+  DATA.plays++;DATA.history.push({d:t,s:r.stage.id,acc:r.acc,age:r.age,ok:r.ok});if(DATA.history.length>60)DATA.history.shift();
+  const b=DATA.best[r.stage.id],newBest=!!b&&r.acc>b.acc;DATA.best[r.stage.id]=b?{acc:Math.max(b.acc,r.acc),age:Math.min(b.age,r.age)}:{acc:r.acc,age:r.age};save();return newBest;}
+function goHome(){state='idle';hideAll();renderStart();$('startOv').classList.remove('hidden');}
+function renderStart(){const p=DATA.profile;$('greet').textContent=p&&p.nick?`${p.nick}님, 반가워요!`:'추억의 골목에서 한 판!';
+  const s=streakNow();$('streak').textContent=s?`🔥 ${s}일 연속 출석 중`:'';
+  const ds=dailyStage(),done=DATA.lastDate===today();
+  $('dailyBtn').innerHTML=done?`✅ 오늘의 한판 완료!<small>${ds.icon} ${ds.name} · 또 해도 좋아요</small>`:`⭐ 오늘의 한판<small>${ds.icon} ${ds.name}</small>`;showOffset();}
+$('dailyBtn').onclick=()=>startGame(dailyStage());
+// 프로필
+let gSel='';
+function openProfile(){const p=DATA.profile||{};$('pNick').value=p.nick||'';$('pAge').value=p.age||'';gSel=p.gender||'';
+  [...$('pGender').children].forEach(b=>b.classList.toggle('on',p.gender!==undefined&&b.dataset.g===gSel));hideAll();$('profOv').classList.remove('hidden');}
+$('profOpen').onclick=openProfile;
+$('pGender').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;gSel=b.dataset.g;[...$('pGender').children].forEach(x=>x.classList.toggle('on',x===b));});
+const ageStep=d=>{const v=parseInt($('pAge').value)||65;$('pAge').value=Math.max(10,Math.min(110,v+d));};
+$('ageMinus').onclick=()=>ageStep(-1);$('agePlus').onclick=()=>ageStep(1);
+$('profSave').onclick=()=>{const a=parseInt($('pAge').value);DATA.profile={nick:$('pNick').value.trim().slice(0,10),age:a>=10&&a<=110?a:0,gender:gSel};save();goHome();};
+$('profSkip').onclick=()=>{DATA.asked=true;save();goHome();};
+// 기록
+function renderRec(){const h=DATA.history;
+  if(!h.length){$('recBody').innerHTML='<p style="text-align:center">아직 기록이 없어요.<br>한 판 해볼까요?</p>';return;}
+  const bestAge=Math.min(...h.map(x=>x.age));
+  let html=`<div class="sum"><div><b>${DATA.plays}</b>판</div><div><b>${streakNow()}</b>일 연속</div><div><b>${bestAge}세</b>최고 순발력</div></div>`;
+  html+='<h3>판별 최고 기록</h3>'+STAGES.map(s=>{const b=DATA.best[s.id];return `<div class="rrow"><span>${s.icon} ${s.name}</span><span>${b?`${b.acc}점 · ${b.age}세`:'-'}</span></div>`;}).join('');
+  html+='<h3>최근 순발력 나이 <span class="sub">(막대가 짧을수록 젊어요)</span></h3>'+h.slice(-10).map(x=>`<div class="bar"><span class="bl">${x.d.slice(5).replace('-','/')}</span><span class="bt"><i style="width:${Math.round(x.age/75*100)}%"></i></span><span class="bv">${x.age}세</span></div>`).join('');
+  $('recBody').innerHTML=html;}
+$('recOpen').onclick=()=>{renderRec();hideAll();$('recOv').classList.remove('hidden');};
+$('recClose').onclick=goHome;
+// 첫 방문이면 프로필부터
+if(!DATA.profile&&!DATA.asked)openProfile();else renderStart();
 
 requestAnimationFrame(loop);
 }
