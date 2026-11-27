@@ -1,0 +1,8 @@
+{
+  "appId": "kr.golmokhanpan.app",
+  "appName": "골목한판",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#fbf3e2"
+  }
+}

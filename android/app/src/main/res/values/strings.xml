@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">골목한판</string>
+    <string name="title_activity_main">골목한판</string>
+    <string name="package_name">kr.golmokhanpan.app</string>
+    <string name="custom_url_scheme">kr.golmokhanpan.app</string>
+</resources>
