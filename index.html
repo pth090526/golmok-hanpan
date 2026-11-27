@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>대장간 못박기</title>
+<style>
+html,body{margin:0;height:100%;background:#2b1d12;overflow:hidden;font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;-webkit-user-select:none;user-select:none}
+canvas{display:block;width:100vw;height:100vh;touch-action:none}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(43,29,18,.9);color:#fbeed7;text-align:center;padding:24px;box-sizing:border-box}
+.hidden{display:none}
+h1{font-size:40px;margin:0 0 14px;color:#ffd58a;letter-spacing:2px}
+h2{font-size:30px;margin:0 0 10px;color:#ffd58a}
+p{font-size:21px;line-height:1.55;margin:6px 0}
+.big{font-size:26px;font-weight:700}
+button{font-size:28px;font-weight:700;padding:18px 40px;border-radius:16px;border:none;background:#e0892b;color:#fff;margin:14px 8px 0;min-width:150px;box-shadow:0 4px 0 #8f5214}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #8f5214}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;width:min(420px,90vw)}
+.opts button{margin:0;font-size:34px;padding:22px 0;min-width:0}
+.hand{display:flex;gap:16px;justify-content:center;margin:14px 0}
+.hand div{background:#5a3b22;border-radius:14px;padding:12px 16px;font-size:20px}
+.ok{color:#9be37a}.no{color:#ff9a7a}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="startOv" class="ov">
+  <h1>대장간 못박기</h1>
+  <p>나무판에 못이 내려오면<br>망치 자리에 왔을 때 <b>탕!</b> 쳐주세요</p>
+  <div class="hand"><div>👈 왼쪽 못<br><b>왼손</b>으로</div><div>오른쪽 못 👉<br><b>오른손</b>으로</div></div>
+  <p class="big">🔍 그리고 길거리도 잘 봐두세요!</p>
+  <p style="font-size:16px;opacity:.7">소리를 켜고 해주세요 · PC는 F / J 키</p>
+  <button id="startBtn">시작하기</button>
+</div>
+
+<div id="quizOv" class="ov hidden">
+  <h2>🔍 눈썰미 퀴즈</h2>
+  <p class="big">방금 길거리를 지나간 <u>사람</u>은<br>몇 명이었을까요?</p>
+  <p style="font-size:17px;opacity:.75">(강아지는 빼고요 🐕)</p>
+  <div id="opts" class="opts"></div>
+</div>
+
+<div id="resultOv" class="ov hidden">
+  <h2 id="rTitle"></h2>
+  <p id="rQuiz" class="big"></p>
+  <p id="rScore"></p>
+  <p id="rMsg"></p>
+  <button id="againBtn">한 판 더</button>
+</div>
+
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+let W,H,dpr,sceneH,hitY,laneX;
+function resize(){dpr=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;g.setTransform(dpr,0,0,dpr,0,0);
+  sceneH=Math.round(H*0.4);hitY=Math.round(H-Math.max(110,H*0.16));laneX={L:W*0.28,R:W*0.72};}
+addEventListener('resize',resize);resize();
+
+// ===== 채보 =====
+const BPM=96,BEAT=60/BPM,LEAD=1.9,WIN_PERF=0.08,WIN_GOOD=0.18;
+const BARS=[[],[],
+ [[0,'L'],[2,'L']],[[0,'R'],[2,'R']],
+ [[0,'L'],[1,'R'],[2,'L'],[3,'R']],[[0,'L'],[2,'R']],
+ [[0,'L'],[1,'L'],[2,'R']],[[0,'R'],[1,'R'],[2,'L']],
+ [[0,'L'],[1,'R'],[2,'L'],[3,'R']],[[0,'B'],[2,'B']],
+ [[0,'L'],[2,'L'],[3,'R']],[[0,'R'],[1,'L'],[2,'R'],[3,'L']],
+ [[0,'L'],[1,'L'],[2,'R'],[3,'R']],[[0,'B'],[2,'L'],[3,'R']],
+ [[0,'L'],[1,'R'],[2,'B']],[[0,'B']]];
+const END_T=(15*4)*BEAT+2.2;
+
+let ac=null,start=0,notes=[],people=[],pops=[],sparks=[],state='idle',score,hammer={L:-9,R:-9},answer=0,noiseBuf;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function now(){return ac?ac.currentTime-(ac.outputLatency||0)-start:-3;}
+
+function buildNotes(){notes=[];BARS.forEach((bar,i)=>bar.forEach(([b,l])=>{const t=(i*4+b)*BEAT;
+  if(l==='B'){notes.push({t,lane:'L'});notes.push({t,lane:'R'});}else notes.push({t,lane:l});}));
+  notes.forEach(n=>{n.done=false;n.res=null;});}
+
+function buildPeople(){people=[];const n=3+Math.floor(Math.random()*5);answer=n;
+  const s0=4,s1=35,slot=(s1-s0)/n,kinds=['suit','hanbok','student','granpa'];
+  for(let i=0;i<n;i++){people.push({t:s0+i*slot+rnd(0,Math.max(0,slot-4.6)),dur:4.4,dir:Math.random()<.5?1:-1,kind:kinds[Math.floor(Math.random()*kinds.length)],human:true});}
+  people.push({t:rnd(8,30),dur:3.2,dir:Math.random()<.5?1:-1,kind:'dog',human:false});}
+
+// ===== 사운드 =====
+function env(node,t,v,d){const gn=ac.createGain();gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(v,t+0.008);gn.gain.exponentialRampToValueAtTime(0.0001,t+d);node.connect(gn).connect(ac.destination);return gn;}
+function tone(f,t,d,type,v){const o=ac.createOscillator();o.type=type||'triangle';o.frequency.value=f;env(o,t,v||0.12,d);o.start(t);o.stop(t+d+0.05);}
+function drum(t,f,v){const o=ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*0.5,t+0.18);env(o,t,v,0.28);o.start(t);o.stop(t+0.32);}
+function clank(perfect){const t=ac.currentTime;const s=ac.createBufferSource();s.buffer=noiseBuf;const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=perfect?3200:2200;f.Q.value=4;s.connect(f);env(f,t,0.6,0.12);s.start(t);s.stop(t+0.15);
+  tone(perfect?2100:1600,t,0.18,'square',0.04);drum(t,110,0.5);}
+function whiff(){const t=ac.currentTime;const s=ac.createBufferSource();s.buffer=noiseBuf;const f=ac.createBiquadFilter();f.type='highpass';f.frequency.value=4000;s.connect(f);env(f,t,0.08,0.08);s.start(t);s.stop(t+0.1);}
+function scheduleMusic(){
+  const sc=[261.6,293.7,329.6,392.0,440.0,523.3,587.3];
+  const mel=[4,4,3,2, 3,2,1,0, 1,2,3,4, 3,2,1,2, 4,5,4,3, 2,3,2,1, 0,1,2,4, 3,2,1,0];
+  for(let b=0;b<64;b++){const t=start+b*BEAT,bar=Math.floor(b/4),bb=b%4;
+    if(bar<2){tone(bb===0?1500:1150,t,0.07,'square',0.07);continue;} // 똑똑 카운트
+    if(bar===15){if(bb===0){tone(sc[0],t,1.6,'triangle',0.16);tone(sc[0]/2,t,1.6,'sine',0.12);drum(t,85,0.7);}continue;}
+    tone(sc[mel[(b-8)%mel.length]],t,0.42,'triangle',0.11);
+    if(bb===0)drum(t,85,0.6);else if(bb===2)drum(t,135,0.4);
+    tone(900,t+BEAT/2,0.04,'square',0.025);
+    if(bb===1||bb===3)tone(sc[mel[(b-8)%mel.length]]/2,t,0.3,'sine',0.06);}
+}
+
+// ===== 입력 =====
+function hit(lane){if(state!=='play')return;hammer[lane]=performance.now();const st=now();let best=null,bd=9;
+  for(const n of notes){if(n.lane!==lane||n.done)continue;const d=st-n.t;if(Math.abs(d)<Math.abs(bd)){bd=d;best=n;}}
+  if(best&&Math.abs(bd)<=WIN_GOOD){best.done=true;const p=Math.abs(bd)<=WIN_PERF;best.res=p?'perfect':'good';score[best.res]++;clank(p);
+    pop(laneX[lane],hitY-90,p?'탕!':'좋아요',p?'#ffe27a':'#fff');for(let i=0;i<10;i++)sparks.push({x:laneX[lane],y:hitY-34,vx:rnd(-3,3),vy:rnd(-5,-1),life:1});}
+  else whiff();}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();hit(e.clientX<W/2?'L':'R');});
+addEventListener('keydown',e=>{if(e.repeat)return;const k=e.key.toLowerCase();if('fdsa'.includes(k))hit('L');else if('jkl;'.includes(k))hit('R');});
+function pop(x,y,text,color){pops.push({x,y,text,color,t:performance.now()});}
+
+// ===== 그리기 =====
+function drawScene(st){
+  const sh=sceneH;let gr=g.createLinearGradient(0,0,0,sh);gr.addColorStop(0,'#f6dfae');gr.addColorStop(1,'#e9c27f');g.fillStyle=gr;g.fillRect(0,0,W,sh);
+  // 산
+  g.fillStyle='#d4ad72';g.beginPath();g.moveTo(0,sh*0.35);g.quadraticCurveTo(W*0.25,sh*0.1,W*0.5,sh*0.3);g.quadraticCurveTo(W*0.75,sh*0.08,W,sh*0.3);g.lineTo(W,sh*0.6);g.lineTo(0,sh*0.6);g.fill();
+  const shops=[['철물점','#8a5a3b'],['이발소','#5f7482'],['다 방','#7a4b4b'],['쌀 집','#7d6b3f']],bw=W/4;
+  shops.forEach((s,i)=>{const x=i*bw+5,y=sh*0.32,h=sh*0.43,w=bw-10;g.fillStyle=s[1];g.fillRect(x,y,w,h);
+    g.fillStyle='#4a3424';g.fillRect(x-3,y-6,w+6,8);
+    g.fillStyle='#2f2117';g.fillRect(x+w*0.3,y+h*0.4,w*0.4,h*0.6);
+    g.fillStyle='#e9d9b0';g.fillRect(x+w*0.06,y+h*0.15,w*0.18,h*0.25);g.fillRect(x+w*0.76,y+h*0.15,w*0.18,h*0.25);
+    g.fillStyle='#f6e7c8';g.fillRect(x+4,y-sh*0.13,w-8,sh*0.11);g.strokeStyle='#4a3424';g.lineWidth=2;g.strokeRect(x+4,y-sh*0.13,w-8,sh*0.11);
+    g.fillStyle='#7a2e1e';g.font=`bold ${Math.min(22,w*0.22)}px sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(s[0],x+w/2,y-sh*0.075);
+    if(i===1){const px=x+w*0.15,py=y+h*0.45;g.fillStyle='#fff';g.fillRect(px-5,py,10,h*0.4);g.fillStyle='#c33';for(let k=0;k<4;k++)g.fillRect(px-5,py+((k*12+st*30)%(h*0.4)),10,4);}});
+  g.fillStyle='#c9a46a';g.fillRect(0,sh*0.75,W,sh*0.25);g.fillStyle='#b8925a';for(let i=0;i<8;i++)g.fillRect((i*137)%W,sh*0.8+(i%3)*sh*0.06,24,3);
+  // 전봇대
+  g.fillStyle='#5a3b22';g.fillRect(W*0.5-4,sh*0.05,8,sh*0.75);g.fillRect(W*0.5-22,sh*0.12,44,5);
+  g.strokeStyle='rgba(40,25,15,.6)';g.lineWidth=1.5;g.beginPath();g.moveTo(0,sh*0.2);g.quadraticCurveTo(W*0.25,sh*0.27,W*0.5-20,sh*0.14);g.moveTo(W*0.5+20,sh*0.14);g.quadraticCurveTo(W*0.75,sh*0.27,W,sh*0.2);g.stroke();
+  for(const p of people){const k=(st-p.t)/p.dur;if(k<0||k>1)continue;const x=p.dir>0?-50+k*(W+100):W+50-k*(W+100);drawWalker(x,sh*0.93,p,st);}
+  g.fillStyle='rgba(60,35,15,.18)';g.fillRect(0,0,W,sh); // 세피아 톤
+}
+function drawWalker(x,y,p,st){const s=sceneH/210,sw=Math.sin(st*11)*0.5;g.save();g.translate(x,y);g.scale(s*p.dir,s);g.lineCap='round';
+  if(p.kind==='dog'){g.fillStyle='#8b5a2b';g.strokeStyle='#8b5a2b';g.lineWidth=5;
+    for(const lx of[-14,12]){g.beginPath();g.moveTo(lx,-14);g.lineTo(lx+sw*8,0);g.stroke();g.beginPath();g.moveTo(lx+4,-14);g.lineTo(lx+4-sw*8,0);g.stroke();}
+    g.beginPath();g.ellipse(0,-20,22,10,0,0,7);g.fill();g.beginPath();g.arc(24,-30,9,0,7);g.fill();g.fillStyle='#5b3819';g.beginPath();g.ellipse(22,-36,4,7,-0.4,0,7);g.fill();
+    g.beginPath();g.moveTo(-20,-24);g.lineTo(-32,-34+sw*6);g.stroke();g.restore();return;}
+  const C={suit:['#3d3d44','#2a2a2e'],hanbok:['#f3e3e8','#d9607a'],student:['#22252e','#22252e'],granpa:['#e8e1cf','#cfc6ad']}[p.kind];
+  g.strokeStyle='#2a1c12';g.lineWidth=6;g.beginPath();g.moveTo(-3,-38);g.lineTo(-3+sw*14,0);g.moveTo(3,-38);g.lineTo(3-sw*14,0);g.stroke();
+  if(p.kind==='hanbok'){g.fillStyle=C[1];g.beginPath();g.moveTo(-6,-60);g.lineTo(6,-60);g.lineTo(18,-6);g.lineTo(-18,-6);g.fill();g.fillStyle=C[0];g.fillRect(-10,-78,20,20);}
+  else{g.fillStyle=C[0];g.fillRect(-11,-80,22,44);}
+  g.strokeStyle=C[0];g.lineWidth=6;g.beginPath();g.moveTo(0,-74);g.lineTo(-sw*14,-50);g.stroke();
+  g.fillStyle='#f0c9a0';g.beginPath();g.arc(0,-90,10,0,7);g.fill();
+  if(p.kind==='suit'){g.fillStyle='#1d1d1d';g.fillRect(-14,-99,28,4);g.fillRect(-9,-109,18,11);}
+  else if(p.kind==='hanbok'){g.fillStyle='#2a1c12';g.beginPath();g.arc(0,-93,10,Math.PI,0);g.fill();g.beginPath();g.arc(-9,-90,5,0,7);g.fill();}
+  else if(p.kind==='student'){g.fillStyle='#15171c';g.fillRect(-11,-102,22,8);g.fillRect(-11,-96,26,3);g.fillStyle='#7a5230';g.fillRect(-20,-70,9,22);}
+  else{g.fillStyle='#e8e1cf';g.beginPath();g.arc(0,-94,8,Math.PI,0);g.fill();g.strokeStyle='#6b4a2b';g.lineWidth=3;g.beginPath();g.moveTo(14,-60);g.lineTo(18,0);g.stroke();g.fillStyle='#fff';g.fillRect(-4,-82,8,6);}
+  g.restore();}
+
+function drawBoard(st){const top=sceneH,spd=(hitY-top)/LEAD;
+  g.fillStyle='#4a2f1b';g.fillRect(0,top,W,H-top);
+  const bw=Math.min(W*0.4,170);
+  for(const l of['L','R']){const x=laneX[l]-bw/2;g.fillStyle='#b07a45';g.fillRect(x,top,bw,H-top);
+    g.strokeStyle='rgba(90,55,25,.45)';g.lineWidth=2;const off=(st*spd)%46;
+    for(let y=top-46+off;y<H;y+=46){g.beginPath();g.moveTo(x+6,y);g.bezierCurveTo(x+bw*0.3,y+8,x+bw*0.7,y-8,x+bw-6,y+4);g.stroke();}
+    g.fillStyle='rgba(0,0,0,.18)';g.fillRect(x,top,6,H-top);g.fillRect(x+bw-6,top,6,H-top);}
+  g.setLineDash([10,8]);g.strokeStyle='rgba(255,230,160,.7)';g.lineWidth=3;g.beginPath();g.moveTo(0,hitY);g.lineTo(W,hitY);g.stroke();g.setLineDash([]);
+  for(const n of notes){const y=hitY-(n.t-st)*spd;if(y<top-40||y>H+40)continue;drawNail(laneX[n.lane],y,n.res);}
+  for(const l of['L','R'])drawHammer(l);
+  g.fillStyle='rgba(255,240,210,.55)';g.font='bold 18px sans-serif';g.textAlign='center';g.fillText('왼손',laneX.L,H-22);g.fillText('오른손',laneX.R,H-22);}
+function drawNail(x,y,res){g.save();g.translate(x,y);
+  g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(0,2,9,3,0,0,7);g.fill();
+  if(res==='perfect'||res==='good'){g.fillStyle='#8d949c';g.fillRect(-12,-5,24,5);g.restore();return;}
+  if(res==='miss')g.rotate(0.5);
+  g.fillStyle='#9aa1a9';g.fillRect(-3,-34,6,34);g.fillStyle='#c5ccd3';g.fillRect(-1,-34,2,34);g.fillStyle='#7d848c';g.fillRect(-12,-40,24,7);g.restore();}
+function drawHammer(l){const side=l==='L'?1:-1,el=(performance.now()-hammer[l])/1000,IDLE=-0.75,HIT=0.3;
+  let a=el<0.05?IDLE+(HIT-IDLE)*(el/0.05):el<0.2?HIT+(IDLE-HIT)*((el-0.05)/0.15):IDLE;
+  g.save();g.translate(laneX[l]-76*side,hitY-60);g.scale(side,1);g.rotate(a);
+  g.fillStyle='#6b4423';g.fillRect(0,-5,84,10);g.fillStyle='#3f4349';g.fillRect(72,-22,24,44);g.fillStyle='#5c6168';g.fillRect(72,-22,24,8);g.restore();}
+
+function drawFx(st){const t=performance.now();
+  sparks=sparks.filter(s=>s.life>0);for(const s of sparks){s.x+=s.vx;s.y+=s.vy;s.vy+=0.25;s.life-=0.04;g.fillStyle=`rgba(255,${180+Math.random()*60|0},60,${s.life})`;g.fillRect(s.x,s.y,4,4);}
+  pops=pops.filter(p=>t-p.t<650);for(const p of pops){const k=(t-p.t)/650;g.globalAlpha=1-k;g.fillStyle=p.color;g.font=`bold ${34+k*8}px sans-serif`;g.textAlign='center';g.strokeStyle='#2b1d12';g.lineWidth=5;g.strokeText(p.text,p.x,p.y-k*30);g.fillText(p.text,p.x,p.y-k*30);g.globalAlpha=1;}
+  if(state==='play'){const b=Math.floor(st/BEAT);
+    if(st<8*BEAT){const txt=b<4?'준비~':['하나','둘','셋','넷'][b-4];g.fillStyle='#ffe9b8';g.strokeStyle='#2b1d12';g.lineWidth=6;g.font='bold 46px sans-serif';g.textAlign='center';g.strokeText(txt,W/2,(sceneH+hitY)/2);g.fillText(txt,W/2,(sceneH+hitY)/2);}
+    g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,0,W,6);g.fillStyle='#e0892b';g.fillRect(0,0,W*Math.min(1,Math.max(0,st/END_T)),6);}}
+
+function loop(){const st=state==='play'?now():0;
+  if(state==='play'){for(const n of notes){if(!n.done&&st-n.t>WIN_GOOD){n.done=true;n.res='miss';score.miss++;pop(laneX[n.lane],hitY-90,'아이고!','#ff9a7a');}}
+    if(st>END_T)endGame();}
+  drawScene(st);drawBoard(st);drawFx(st);requestAnimationFrame(loop);}
+
+// ===== 흐름 =====
+const $=id=>document.getElementById(id);
+function startGame(){
+  if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();noiseBuf=ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
+  ac.resume();buildNotes();buildPeople();score={perfect:0,good:0,miss:0};pops=[];sparks=[];
+  start=ac.currentTime+0.6;scheduleMusic();state='play';
+  ['startOv','quizOv','resultOv'].forEach(i=>$(i).classList.add('hidden'));}
+function endGame(){state='quiz';const set=new Set([answer]);const pool=[answer-2,answer-1,answer+1,answer+2,answer+3].filter(v=>v>0).sort(()=>Math.random()-0.5);
+  for(const v of pool){if(set.size>=4)break;set.add(v);}const box=$('opts');box.innerHTML='';
+  [...set].sort((a,b)=>a-b).forEach(v=>{const b=document.createElement('button');b.textContent=v+'명';b.onclick=()=>showResult(v);box.appendChild(b);});
+  $('quizOv').classList.remove('hidden');}
+function showResult(v){state='result';$('quizOv').classList.add('hidden');const total=notes.length,acc=Math.round((score.perfect+score.good*0.7)/total*100),ok=v===answer;
+  $('rTitle').textContent=acc>=85?'🔨 명장 대장장이!':acc>=60?'🔨 솜씨 좋은 일꾼':'🔨 수습 대장장이';
+  $('rQuiz').innerHTML=ok?`<span class="ok">⭕ 정답! ${answer}명이 지나갔어요</span>`:`<span class="no">❌ 아쉬워요, ${answer}명이 지나갔어요</span>`;
+  $('rScore').innerHTML=`망치질 정확도 <b>${acc}점</b><br>탕! ${score.perfect} · 좋아요 ${score.good} · 아이고 ${score.miss}`;
+  $('rMsg').textContent=ok&&acc>=85?'손도 눈도 아주 좋으시네요!':ok?'눈썰미가 대단하세요! 망치질만 조금 더~':acc>=85?'망치질은 완벽! 다음엔 길거리도 살펴보세요':'한 판 더 하면 금방 늘어요!';
+  $('resultOv').classList.remove('hidden');}
+$('startBtn').onclick=startGame;$('againBtn').onclick=startGame;
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
