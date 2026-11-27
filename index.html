@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>골목한판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;height:100%;background:#2b1d12;overflow:hidden;font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;-webkit-user-select:none;user-select:none}
 canvas{display:block;width:100vw;height:100vh;touch-action:none}
@@ -38,24 +40,83 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
 .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.sum div{background:#5a3b22;border-radius:12px;padding:10px 4px;font-size:16px}.sum b{display:block;font-size:28px;color:#ffd58a}
 .rrow{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:18px}
 .bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:16px}.bl{width:48px}.bt{flex:1;height:14px;background:#3d2a19;border-radius:7px;overflow:hidden}.bt i{display:block;height:100%;background:#e0892b}.bv{width:44px;text-align:right}
+/* 홈 (A안) */
+.home{position:fixed;inset:0;display:flex;flex-direction:column;background:#fbf3e2;color:#2b1d12;font-family:'Noto Sans KR',-apple-system,"Apple SD Gothic Neo",sans-serif}
+.home.hidden{display:none}
+.hscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.banner{position:relative;height:250px;background:#f1d9a6;overflow:hidden}.banner>svg{position:absolute;inset:0;width:100%;height:250px}
+.btop{position:absolute;left:20px;right:20px;top:20px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.logo{font-family:'Black Han Sans',sans-serif;font-size:30px;line-height:1.1}
+.hello{font-size:17px;font-weight:700;color:#3b2a1c}
+.chip{display:flex;align-items:center;gap:6px;background:#2b1d12;color:#ffd58a;border-radius:999px;padding:8px 14px;font-size:16px;font-weight:700;white-space:nowrap}.chip:empty{display:none}
+.hbody{max-width:480px;margin:-34px auto 0;padding:0 18px 20px;position:relative;display:flex;flex-direction:column;gap:12px}
+.today{background:#f2c94c;border-radius:22px;padding:18px 20px;box-shadow:0 6px 0 #a5821d;display:flex;flex-direction:column;gap:12px}
+.trow{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:700;color:#5a3f0c}
+.tpill{font-size:14px;background:rgba(255,255,255,.5);border-radius:999px;padding:3px 10px}
+.tmain{display:flex;align-items:center;gap:14px;text-align:left}
+.ticon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex:none}
+.tname{font-family:'Black Han Sans',sans-serif;font-size:28px;line-height:1.15}
+.tdesc{font-size:16px;color:#4a3410}
+.home .tbtn{margin:0;width:100%;height:58px;border-radius:16px;background:#2b1d12;color:#fbeed7;font-size:22px;font-weight:900;box-shadow:0 4px 0 #120b06;padding:0}
+.stats{display:flex;gap:10px}.stat{flex:1;background:#fff8ea;border:2px solid #ead7b0;border-radius:16px;padding:7px 12px;display:flex;flex-direction:column;text-align:left;font-size:14px;color:#6b5236}
+.stat b{font-size:26px;font-weight:900;line-height:1.2}.c1{color:#b4441a}.c2{color:#2f6b2a}
+.htitle{font-size:18px;font-weight:900;text-align:left}
+.slist{display:flex;flex-direction:column;gap:10px}
+.home .srow{margin:0;display:flex;align-items:center;gap:14px;background:#fff;border-radius:16px;padding:8px 14px;color:#2b1d12;box-shadow:0 3px 0 #ead7b0;text-align:left;min-width:0;width:100%;font-family:inherit}
+.srow .si{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.srow .sn{display:block;font-size:19px;font-weight:700}.srow .sd{display:block;font-size:15px;color:#6b5236;font-weight:400}
+.hint{font-size:15px;color:#6b5236;text-align:center;line-height:1.5}
+.tabs{flex:none;min-height:72px;background:#2b1d12;display:flex;justify-content:space-around;align-items:center;padding-bottom:env(safe-area-inset-bottom)}
+.home .tabs button{margin:0;background:none;box-shadow:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:#cdb89a;font-size:15px;font-weight:500;padding:6px 10px;min-width:72px}
+.home .tabs button.on{color:#ffd58a;font-weight:700}
 #cardImg{width:min(320px,80vw);border-radius:12px;margin:10px 0;box-shadow:0 6px 20px rgba(0,0,0,.4);-webkit-touch-callout:default;user-select:auto}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 
-<div id="startOv" class="ov">
-  <h1>골목한판</h1>
-  <p class="big" id="greet" style="margin:0">추억의 골목에서 한 판!</p>
-  <p id="streak" style="margin:2px 0;color:#ffb36b;font-weight:700"></p>
-  <button id="dailyBtn" class="daily"></button>
-  <div class="hand"><div>👈 왼쪽은 <b>왼손</b></div><div><b>오른손</b>은 오른쪽 👉</div></div>
-  <p class="sub" style="margin-top:8px">🔍 배경도 잘 봐두세요! 끝나면 눈썰미 퀴즈가 나와요</p>
-  <div class="stages" id="stageList"></div>
-  <div><button id="recOpen" class="alt small">📒 내 기록</button><button id="profOpen" class="alt small">👤 내 정보</button></div>
-  <p class="sub" style="margin-top:10px">소리를 켜고 해주세요 · PC는 F / J 키</p>
-  <button id="calibOpen" class="alt small">🎧 소리가 늦게 들리면? 박자 맞추기</button>
-  <p class="sub" id="offsetNow"></p>
+<div id="startOv" class="home">
+  <div class="hscroll">
+    <div class="banner">
+      <svg viewBox="0 0 390 250" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <rect width="390" height="250" fill="#f1d9a6"/>
+        <path d="M-200 120 Q90 70 190 110 T590 95 L590 180 L-200 180Z" fill="#e3bf80"/>
+        <rect x="-200" y="198" width="790" height="52" fill="#c9a46a"/>
+        <rect x="14" y="120" width="104" height="80" fill="#8a5a3b"/><rect x="10" y="114" width="112" height="8" fill="#4a3424"/>
+        <rect x="22" y="92" width="88" height="24" fill="#f6e7c8" stroke="#4a3424" stroke-width="2"/>
+        <text x="66" y="110" text-anchor="middle" font-family="Black Han Sans" font-size="16" fill="#7a2e1e">대장간</text>
+        <rect x="48" y="150" width="36" height="50" fill="#2f2117"/>
+        <rect x="140" y="128" width="104" height="72" fill="#7d6b3f"/><rect x="136" y="122" width="112" height="8" fill="#4a3424"/>
+        <rect x="148" y="100" width="88" height="24" fill="#f6e7c8" stroke="#4a3424" stroke-width="2"/>
+        <text x="192" y="118" text-anchor="middle" font-family="Black Han Sans" font-size="16" fill="#7a2e1e">다듬이방</text>
+        <rect x="160" y="146" width="30" height="24" fill="#e9d9b0"/><rect x="200" y="146" width="30" height="24" fill="#e9d9b0"/>
+        <rect x="268" y="118" width="110" height="82" fill="#5f7482"/><rect x="264" y="112" width="118" height="8" fill="#4a3424"/>
+        <rect x="276" y="90" width="94" height="24" fill="#f6e7c8" stroke="#4a3424" stroke-width="2"/>
+        <text x="323" y="108" text-anchor="middle" font-family="Black Han Sans" font-size="16" fill="#7a2e1e">정류장</text>
+        <rect x="252" y="40" width="6" height="160" fill="#5a3b22"/><rect x="238" y="50" width="34" height="4" fill="#5a3b22"/>
+        <path d="M-200 64 Q120 84 238 52 M272 52 Q330 72 590 60" stroke="#3b2a1c" stroke-width="1.2" fill="none" opacity=".6"/>
+        <rect x="290" y="166" width="74" height="28" rx="12" fill="#2f7f86"/><rect x="290" y="166" width="74" height="12" rx="6" fill="#e9dfc4"/>
+        <circle cx="304" cy="196" r="6" fill="#222"/><circle cx="350" cy="196" r="6" fill="#222"/>
+      </svg>
+      <div class="btop"><div><div class="logo">골목한판</div><div class="hello" id="greet"></div></div><div class="chip" id="streak"></div></div>
+    </div>
+    <div class="hbody">
+      <div class="today">
+        <div class="trow"><span id="todayDate"></span><span class="tpill">하루 한 판</span></div>
+        <div class="tmain"><div class="ticon" id="todayIcon"></div><div><div class="tname" id="todayName"></div><div class="tdesc" id="todayDesc"></div></div></div>
+        <button id="dailyBtn" class="tbtn">한 판 시작하기</button>
+      </div>
+      <div class="stats"><div class="stat">최고 순발력 나이<b class="c1" id="stBest">-</b></div><div class="stat"><span id="stLabel2">실제 나이보다</span><b class="c2" id="stDiff">-</b></div></div>
+      <div class="htitle">골목 한 바퀴</div>
+      <div id="stageList" class="slist"></div>
+      <p class="hint">왼쪽은 왼손, 오른쪽은 오른손 · 배경도 잘 봐두세요!<br>소리를 켜고 해주세요 · PC는 F / J 키</p>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="on" aria-current="page"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/><path d="M10 20v-5h4v5"/></svg>홈</button>
+    <button id="recOpen"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>내 기록</button>
+    <button id="profOpen"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>내 정보</button>
+  </nav>
 </div>
 
 <div id="profOv" class="ov hidden">
@@ -66,6 +127,8 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
   <div class="fl">성별 <span class="sub">(선택)</span><div class="seg" id="pGender"><button data-g="m">남자</button><button data-g="f">여자</button><button data-g="">안 알려줌</button></div></div>
   <button id="profSave" style="margin-top:20px">저장하고 시작</button>
   <button id="profSkip" class="alt small">나중에 할게요</button>
+  <button id="calibOpen" class="alt small" style="margin-top:18px">🎧 소리가 늦게 들리면? 박자 맞추기</button>
+  <p class="sub" id="offsetNow"></p>
 </div>
 
 <div id="recOv" class="ov hidden">
@@ -377,7 +440,6 @@ function loop(){const s=stage||S1,st=state==='play'?songT():0;
 // ===== 흐름 =====
 const $=id=>document.getElementById(id);
 const hideAll=()=>['startOv','quizOv','resultOv','cardOv','calibOv','profOv','recOv'].forEach(i=>$(i).classList.add('hidden'));
-$('stageList').innerHTML=STAGES.map((s,i)=>`<button data-i="${i}">${s.icon} ${i+1}. ${s.name}<small>${s.desc}</small></button>`).join('');
 $('stageList').addEventListener('click',e=>{const b=e.target.closest('button');if(b)startGame(STAGES[+b.dataset.i]);});
 function startGame(s){stage=s;BEAT=60/s.bpm;END_T=15*4*BEAT+2.2;
   ensureAudio();buildNotes();const sp=s.spawn();walkers=sp.walkers;quiz=sp.quiz;score={perfect:0,good:0,miss:0,whiff:0};errs=[];pops=[];sparks=[];
@@ -457,10 +519,23 @@ function record(r){const t=today();if(DATA.lastDate!==t){DATA.streak=DATA.lastDa
   DATA.plays++;DATA.history.push({d:t,s:r.stage.id,acc:r.acc,age:r.age,ok:r.ok});if(DATA.history.length>60)DATA.history.shift();
   const b=DATA.best[r.stage.id],newBest=!!b&&r.acc>b.acc;DATA.best[r.stage.id]=b?{acc:Math.max(b.acc,r.acc),age:Math.min(b.age,r.age)}:{acc:r.acc,age:r.age};save();return newBest;}
 function goHome(){state='idle';hideAll();renderStart();$('startOv').classList.remove('hidden');}
-function renderStart(){const p=DATA.profile;$('greet').textContent=p&&p.nick?`${p.nick}님, 반가워요!`:'추억의 골목에서 한 판!';
-  const s=streakNow();$('streak').textContent=s?`🔥 ${s}일 연속 출석 중`:'';
-  const ds=dailyStage(),done=DATA.lastDate===today();
-  $('dailyBtn').innerHTML=done?`✅ 오늘의 한판 완료!<small>${ds.icon} ${ds.name} · 또 해도 좋아요</small>`:`⭐ 오늘의 한판<small>${ds.icon} ${ds.name}</small>`;showOffset();}
+const ICON={nail:{c:'#8a5a3b',p:'<path d="M4 20l9-9"/><rect x="11" y="3" width="9" height="6" rx="1" transform="rotate(45 15.5 6)"/>'},
+  dadeumi:{c:'#7d6b3f',p:'<rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 4l3 10M17 4l-3 10"/>'},
+  bus:{c:'#2f7f86',p:'<rect x="3" y="6" width="18" height="11" rx="3"/><path d="M3 12h18"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/>'}};
+const icon=(id,z)=>`<svg width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="#fbeed7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[id].p}</svg>`;
+const FLAME='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffb36b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-4 2-7 1 1 2 2 3 4 0-3 0-5 0-8z"/></svg>';
+const CHEV='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8a6a48" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+function renderStart(){const p=DATA.profile||{};$('greet').textContent=p.nick?`${p.nick}님, 반가워요!`:'추억의 골목에서 한 판!';
+  const s=streakNow();$('streak').innerHTML=s?`${FLAME}${s}일 연속`:'';
+  const ds=dailyStage(),done=DATA.lastDate===today(),d=new Date();
+  $('todayDate').textContent=done?'오늘 한 판 완료!':`오늘의 한판 · ${d.getMonth()+1}월 ${d.getDate()}일`;
+  $('todayIcon').style.background=ICON[ds.id].c;$('todayIcon').innerHTML=icon(ds.id,38);$('todayName').textContent=ds.name;$('todayDesc').textContent=ds.desc;
+  $('dailyBtn').textContent=done?'또 한 판 하기':'한 판 시작하기';
+  const h=DATA.history,best=h.length?Math.min(...h.map(x=>x.age)):0;$('stBest').textContent=best?best+'세':'-';
+  if(p.age){$('stLabel2').textContent='실제 나이보다';$('stDiff').textContent=!best?'-':p.age-best>0?`${p.age-best}살 젊음`:'비슷해요';}
+  else{$('stLabel2').textContent='지금까지';$('stDiff').textContent=`${DATA.plays}판`;}
+  $('stageList').innerHTML=STAGES.map((st,i)=>{const b=DATA.best[st.id];return `<button class="srow" data-i="${i}"><span class="si" style="background:${ICON[st.id].c}">${icon(st.id,26)}</span><span style="flex:1;min-width:0"><span class="sn">${st.name}</span><span class="sd">${b?`최고 ${b.acc}점 · ${b.age}세`:st.desc}</span></span>${CHEV}</button>`;}).join('');
+  showOffset();}
 $('dailyBtn').onclick=()=>startGame(dailyStage());
 // 프로필
 let gSel='';
