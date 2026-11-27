@@ -39,6 +39,21 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
   <p class="big" style="margin-top:12px">🔍 배경도 잘 봐두세요!<br><span class="sub">끝나면 눈썰미 퀴즈가 나와요</span></p>
   <div class="stages" id="stageList"></div>
   <p class="sub" style="margin-top:14px">소리를 켜고 해주세요 · PC는 F / J 키</p>
+  <button id="calibOpen" class="alt" style="font-size:18px;padding:10px 18px">🎧 소리가 늦게 들리면? 박자 맞추기</button>
+  <p class="sub" id="offsetNow"></p>
+</div>
+
+<div id="calibOv" class="ov hidden">
+  <h2>🎧 박자 맞추기</h2>
+  <p>'똑' 소리가 들릴 때마다<br>아래 큰 버튼을 <b>톡</b> 눌러주세요</p>
+  <p class="sub">화면보다 소리에 집중하세요 · 12번 울려요</p>
+  <button id="calibPad" style="width:min(320px,80vw);height:200px;font-size:34px;margin-top:16px">톡!</button>
+  <p id="calibMsg" class="big" style="min-height:70px"></p>
+  <div>
+    <button id="calibStart">시작</button>
+    <button id="calibReset" class="alt">초기화</button>
+    <button id="calibClose" class="alt">닫기</button>
+  </div>
 </div>
 
 <div id="quizOv" class="ov hidden">
@@ -83,8 +98,11 @@ addEventListener('resize',resize);resize();
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const LEAD=1.9,WIN_PERF=0.08,WIN_GOOD=0.18;
-let ac=null,start=0,BEAT=0.625,END_T=40,notes=[],walkers=[],pops=[],sparks=[],state='idle',score,hammer={L:-9,R:-9},noiseBuf,stage=null,quiz=null,lastResult=null;
+let ac=null,start=0,BEAT=0.625,END_T=40,notes=[],walkers=[],pops=[],sparks=[],state='idle',score,hammer={L:-9,R:-9},noiseBuf,stage=null,quiz=null,lastResult=null,errs=[];
+let OFFSET=0;try{OFFSET=parseFloat(localStorage.getItem('gh_offset'))||0;}catch(e){}
 function now(){return ac?ac.currentTime-(ac.outputLatency||0)-start:-3;}
+function songT(){return now()-OFFSET;}
+function ensureAudio(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();noiseBuf=ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}ac.resume();}
 
 // ===== 사운드 =====
 function env(node,t,v,d){const gn=ac.createGain();gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(v,t+0.008);gn.gain.exponentialRampToValueAtTime(0.0001,t+d);node.connect(gn).connect(ac.destination);}
@@ -233,11 +251,11 @@ function buildNotes(){notes=[];stage.bars.forEach((bar,i)=>bar.forEach(([b,l])=>
   if(l==='B'){notes.push({t,lane:'L'});notes.push({t,lane:'R'});}else notes.push({t,lane:l});}));}
 
 // ===== 입력 =====
-function hit(lane){if(state!=='play')return;hammer[lane]=performance.now();const st=now();let best=null,bd=9;
+function hit(lane){if(state!=='play')return;hammer[lane]=performance.now();const st=songT();let best=null,bd=9;
   for(const n of notes){if(n.lane!==lane||n.done)continue;const d=st-n.t;if(Math.abs(d)<Math.abs(bd)){bd=d;best=n;}}
-  if(best&&Math.abs(bd)<=WIN_GOOD){best.done=true;const p=Math.abs(bd)<=WIN_PERF;best.res=p?'perfect':'good';score[best.res]++;stage.hitSound(p);
+  if(best&&Math.abs(bd)<=WIN_GOOD){best.done=true;const p=Math.abs(bd)<=WIN_PERF;best.res=p?'perfect':'good';score[best.res]++;errs.push(Math.abs(bd));stage.hitSound(p);
     pop(laneX[lane],hitY-90,stage.hitText[p?0:1],p?'#ffe27a':'#fff');for(let i=0;i<10;i++)sparks.push({x:laneX[lane],y:hitY-30,vx:rnd(-3,3),vy:rnd(-5,-1),life:1,c:stage.id==='nail'});}
-  else whiff();}
+  else{whiff();score.whiff++;}}
 cv.addEventListener('pointerdown',e=>{e.preventDefault();hit(e.clientX<W/2?'L':'R');});
 addEventListener('keydown',e=>{if(e.repeat)return;const k=e.key.toLowerCase();if('fdsa'.includes(k))hit('L');else if('jkl;'.includes(k))hit('R');});
 function pop(x,y,text,color){pops.push({x,y,text,color,t:performance.now()});}
@@ -249,7 +267,7 @@ function drawFx(st){const t=performance.now();
   if(state==='play'){const b=Math.floor(st/BEAT);
     if(st<8*BEAT){const txt=b<4?'준비~':['하나','둘','셋','넷'][b-4];g.fillStyle='#ffe9b8';g.strokeStyle='#2b1d12';g.lineWidth=6;g.font='bold 46px sans-serif';g.textAlign='center';g.textBaseline='middle';g.strokeText(txt,W/2,(sceneH+hitY)/2);g.fillText(txt,W/2,(sceneH+hitY)/2);}
     g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,0,W,6);g.fillStyle='#e0892b';g.fillRect(0,0,W*Math.min(1,Math.max(0,st/END_T)),6);}}
-function loop(){const s=stage||S1,st=state==='play'?now():0;
+function loop(){const s=stage||S1,st=state==='play'?songT():0;
   if(state==='play'){for(const n of notes){if(!n.done&&st-n.t>WIN_GOOD){n.done=true;n.res='miss';score.miss++;pop(laneX[n.lane],hitY-90,'아이고!','#ff9a7a');}}if(st>END_T)endGame();}
   s.drawScene(st);const top=sceneH,spd=(hitY-top)/LEAD,bw=Math.min(W*0.4,170);s.drawLanes(st,top,bw,spd);
   g.setLineDash([10,8]);g.strokeStyle='rgba(255,230,160,.7)';g.lineWidth=3;g.beginPath();g.moveTo(0,hitY);g.lineTo(W,hitY);g.stroke();g.setLineDash([]);
@@ -261,24 +279,46 @@ function loop(){const s=stage||S1,st=state==='play'?now():0;
 
 // ===== 흐름 =====
 const $=id=>document.getElementById(id);
-const hideAll=()=>['startOv','quizOv','resultOv','cardOv'].forEach(i=>$(i).classList.add('hidden'));
+const hideAll=()=>['startOv','quizOv','resultOv','cardOv','calibOv'].forEach(i=>$(i).classList.add('hidden'));
 $('stageList').innerHTML=STAGES.map((s,i)=>`<button data-i="${i}">${s.icon} ${i+1}. ${s.name}<small>${s.desc}</small></button>`).join('');
 $('stageList').addEventListener('click',e=>{const b=e.target.closest('button');if(b)startGame(STAGES[+b.dataset.i]);});
 function startGame(s){stage=s;BEAT=60/s.bpm;END_T=15*4*BEAT+2.2;
-  if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();noiseBuf=ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
-  ac.resume();buildNotes();const sp=s.spawn();walkers=sp.walkers;quiz=sp.quiz;score={perfect:0,good:0,miss:0};pops=[];sparks=[];
+  ensureAudio();buildNotes();const sp=s.spawn();walkers=sp.walkers;quiz=sp.quiz;score={perfect:0,good:0,miss:0,whiff:0};errs=[];pops=[];sparks=[];
   start=ac.currentTime+0.6;scheduleMusic(s.mel,s.perc.bind(s));state='play';hideAll();}
 function endGame(){state='quiz';$('qText').innerHTML=quiz.q;$('qSub').textContent=quiz.sub;const box=$('opts');box.innerHTML='';
   quiz.options.forEach(o=>{const b=document.createElement('button');b.textContent=o.label;b.onclick=()=>showResult(o.value);box.appendChild(b);});
   $('quizOv').classList.remove('hidden');}
-function showResult(v){state='result';hideAll();const total=notes.length,acc=Math.round((score.perfect+score.good*0.7)/total*100),ok=v===quiz.answer;
-  const rank=stage.ranks[acc>=85?0:acc>=60?1:2];lastResult={acc,ok,rank,stage};
-  $('rTitle').textContent=rank;
+function showResult(v){state='result';hideAll();const total=notes.length,acc=Math.max(0,Math.round((score.perfect+score.good*0.7)/total*100)-Math.max(0,score.whiff-5)),ok=v===quiz.answer;
+  const rank=stage.ranks[acc>=85?0:acc>=60?1:2],age=quickAge(acc);lastResult={acc,ok,rank,stage,age};
+  $('rTitle').innerHTML=`${rank}<br><span style="font-size:22px;color:#fbeed7">⚡ 재미로 보는 순발력 나이</span><br><span style="font-size:54px;color:#ffd58a">${age}세</span>`;
   $('rQuiz').innerHTML=ok?`<span class="ok">⭕ 정답! (${quiz.answerText})</span>`:`<span class="no">❌ 아쉬워요! 정답은 ${quiz.answerText}</span>`;
-  $('rScore').innerHTML=`${stage.skill} 정확도 <b>${acc}점</b><br>${stage.hitText[0]} ${score.perfect} · 좋아요 ${score.good} · 아이고 ${score.miss}`;
+  $('rScore').innerHTML=`${stage.skill} 정확도 <b>${acc}점</b><br>${stage.hitText[0]} ${score.perfect} · 좋아요 ${score.good} · 아이고 ${score.miss}${score.whiff>5?` · 헛손질 ${score.whiff}`:''}`;
   $('rMsg').textContent=ok&&acc>=85?'손도 눈도 아주 좋으시네요!':ok?'눈썰미가 대단하세요! 손은 조금 더~':acc>=85?`${stage.skill}은 완벽! 다음엔 배경도 살펴보세요`:'한 판 더 하면 금방 늘어요!';
   $('resultOv').classList.remove('hidden');}
+// 재미용: 박자 오차(평균)와 정확도로 계산, 20~75세로 제한 (의학적 의미 없음)
+function quickAge(acc){if(!errs.length)return 75;const ms=errs.reduce((a,b)=>a+b,0)/errs.length*1000;
+  return Math.round(Math.min(75,Math.max(20,20+ms*0.35+(100-acc)*0.4)));}
 $('againBtn').onclick=()=>startGame(stage);
+
+// ===== 박자 맞추기 (오디오 지연 보정) =====
+const CAL_BPM=100,CAL_N=12,CAL_SKIP=4;let calTaps=[],calStart=0,calTimer=null;
+function showOffset(){$('offsetNow').textContent=OFFSET?`현재 보정값: ${OFFSET>0?'+':''}${OFFSET.toFixed(2)}초`:'';}
+showOffset();
+$('calibOpen').onclick=()=>{hideAll();$('calibMsg').textContent='';$('calibOv').classList.remove('hidden');state='calib';};
+$('calibClose').onclick=()=>{clearTimeout(calTimer);state='idle';hideAll();showOffset();$('startOv').classList.remove('hidden');};
+$('calibReset').onclick=()=>{OFFSET=0;try{localStorage.removeItem('gh_offset');}catch(e){}$('calibMsg').textContent='보정값을 0으로 되돌렸어요';};
+$('calibStart').onclick=()=>{ensureAudio();calTaps=[];const b=60/CAL_BPM;calStart=ac.currentTime+0.5;
+  for(let i=0;i<CAL_N;i++)tone(i%4===0?1500:1150,calStart+i*b,0.07,'square',0.12);
+  $('calibMsg').textContent='소리에 맞춰 톡! 톡!';clearTimeout(calTimer);calTimer=setTimeout(finishCal,(0.5+CAL_N*b+0.6)*1000);};
+$('calibPad').addEventListener('pointerdown',e=>{e.preventDefault();if(!ac||!calStart)return;calTaps.push(ac.currentTime-(ac.outputLatency||0)-calStart);
+  e.currentTarget.animate([{transform:'scale(.95)'},{transform:'scale(1)'}],{duration:120});});
+function finishCal(){const b=60/CAL_BPM,d=[];
+  for(const t of calTaps){const i=Math.round(t/b);if(i<CAL_SKIP||i>=CAL_N)continue;const e=t-i*b;if(Math.abs(e)<0.35)d.push(e);}
+  calStart=0;
+  if(d.length<4){$('calibMsg').textContent='톡 누른 횟수가 부족해요. 다시 해볼까요?';return;}
+  d.sort((a,b)=>a-b);const med=d[Math.floor(d.length/2)];OFFSET=Math.max(-0.3,Math.min(0.3,Math.round(med*100)/100));
+  try{localStorage.setItem('gh_offset',String(OFFSET));}catch(e){}
+  $('calibMsg').textContent=Math.abs(OFFSET)<0.03?'박자가 딱 맞아요! 보정 필요 없어요 👍':`보정 완료! (${OFFSET>0?'+':''}${OFFSET.toFixed(2)}초) 이제 판정이 맞춰져요`;}
 $('menuBtn').onclick=()=>{state='idle';hideAll();$('startOv').classList.remove('hidden');};
 
 // ===== 공유 카드 =====
@@ -287,20 +327,22 @@ function makeCard(r){const c=document.createElement('canvas');c.width=1080;c.hei
   x.fillStyle='#e9c27f';x.fillRect(40,700,1000,340);x.strokeStyle='#5a3b22';x.lineWidth=10;x.strokeRect(40,40,1000,1000);
   x.textAlign='center';x.textBaseline='middle';x.fillStyle='#7a2e1e';x.font='bold 64px sans-serif';x.fillText('골목한판',540,140);
   x.fillStyle='#5a3b22';x.font='bold 46px sans-serif';x.fillText(`${r.stage.icon} ${r.stage.name}`,540,230);
-  x.fillStyle='#2b1d12';x.font='bold 70px sans-serif';x.fillText(r.rank.replace(/^\S+\s/,''),540,360);
-  x.fillStyle='#e0892b';x.font='bold 170px sans-serif';x.fillText(r.acc+'점',540,520);
-  x.fillStyle='#2b1d12';x.font='bold 50px sans-serif';x.fillText(`${r.stage.skill} 정확도`,540,630);
+  x.fillStyle='#2b1d12';x.font='bold 58px sans-serif';x.fillText(r.rank.replace(/^\S+\s/,''),540,330);
+  x.font='bold 44px sans-serif';x.fillText('⚡ 내 순발력 나이',540,420);
+  x.fillStyle='#e0892b';x.font='bold 150px sans-serif';x.fillText(r.age+'세',540,535);
+  x.fillStyle='#5a3b22';x.font='bold 42px sans-serif';x.fillText(`${r.stage.skill} 정확도 ${r.acc}점`,540,640);
+  x.font='28px sans-serif';x.fillText('(재미로 보는 숫자예요)',540,682);
   x.fillStyle=r.ok?'#3c7a2a':'#a0442f';x.font='bold 54px sans-serif';x.fillText(r.ok?'⭕ 눈썰미 퀴즈 정답!':'❌ 눈썰미 퀴즈는 아깝게…',540,790);
   x.fillStyle='#2b1d12';x.font='bold 44px sans-serif';x.fillText('나도 한 판 해볼까? 👇',540,900);
   x.font='36px sans-serif';x.fillText(SITE.replace('https://',''),540,965);return c;}
-async function share(){if(!lastResult)return;const c=makeCard(lastResult),text=`[골목한판] ${lastResult.stage.name} ${lastResult.acc}점! 나도 한 판 해볼까?`;
+async function share(){if(!lastResult)return;const c=makeCard(lastResult),text=`[골목한판] ${lastResult.stage.name} — 내 순발력 나이 ${lastResult.age}세! 나도 한 판 해볼까?`;
   try{const blob=await new Promise(res=>c.toBlob(res,'image/png'));const file=new File([blob],'golmok-hanpan.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:text+'\n'+SITE});return;}}
   catch(e){if(e&&e.name==='AbortError')return;}
   $('cardImg').src=c.toDataURL('image/png');$('copyMsg').textContent='';hideAll();$('cardOv').classList.remove('hidden');}
 $('shareBtn').onclick=share;
 $('cardClose').onclick=()=>{hideAll();$('resultOv').classList.remove('hidden');};
-$('copyBtn').onclick=async()=>{const text=`[골목한판] ${lastResult.stage.name} ${lastResult.acc}점! 나도 한 판 해볼까?\n${SITE}`;
+$('copyBtn').onclick=async()=>{const text=`[골목한판] ${lastResult.stage.name} — 내 순발력 나이 ${lastResult.age}세! 나도 한 판 해볼까?\n${SITE}`;
   try{await navigator.clipboard.writeText(text);$('copyMsg').textContent='복사됐어요! 카톡에 붙여넣기 하세요';}catch(e){$('copyMsg').textContent=SITE;}};
 
 requestAnimationFrame(loop);
