@@ -9,37 +9,39 @@
 <style>
 html,body{margin:0;height:100%;background:#2b1d12;overflow:hidden;font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;-webkit-user-select:none;user-select:none}
 canvas{display:block;width:100vw;height:100vh;touch-action:none}
-.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(43,29,18,.92);color:#fbeed7;text-align:center;padding:20px;box-sizing:border-box;overflow-y:auto}
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;background:#fbf3e2;color:#2b1d12;text-align:center;padding:24px 20px;box-sizing:border-box;overflow-y:auto;font-family:'Noto Sans KR',-apple-system,"Apple SD Gothic Neo",sans-serif}
 .hidden{display:none}
-h1{font-size:42px;margin:0 0 4px;color:#ffd58a;letter-spacing:3px}
-h2{font-size:30px;margin:0 0 10px;color:#ffd58a}
+h1{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:42px;margin:0 0 4px;color:#2b1d12}
+h2{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:32px;line-height:1.2;margin:0 0 10px;color:#2b1d12}
 p{font-size:21px;line-height:1.55;margin:6px 0}
-.big{font-size:25px;font-weight:700}
-.sub{font-size:16px;opacity:.75}
-button{font-size:26px;font-weight:700;padding:16px 30px;border-radius:16px;border:none;background:#e0892b;color:#fff;margin:10px 6px 0;min-width:140px;box-shadow:0 4px 0 #8f5214;font-family:inherit}
-button:active{transform:translateY(3px);box-shadow:0 1px 0 #8f5214}
-button.alt{background:#6b4a2e;box-shadow:0 4px 0 #3d2a19}
+.big{font-size:24px;font-weight:700}
+.sub{font-size:16px;color:#6b5236}
+button{font-size:24px;font-weight:900;padding:15px 28px;border-radius:16px;border:none;background:#2b1d12;color:#fbeed7;margin:10px 6px 0;min-width:140px;box-shadow:0 4px 0 #120b06;font-family:inherit;cursor:pointer}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #120b06}
+button.alt{background:#fff;color:#2b1d12;box-shadow:0 3px 0 #ead7b0;border:2px solid #ead7b0;font-weight:700}
 button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
-.stages{display:flex;flex-direction:column;gap:14px;width:min(420px,92vw);margin-top:14px}
-.stages button{margin:0;text-align:left;padding:16px 20px;font-size:24px}
-.stages small{display:block;font-size:16px;font-weight:400;opacity:.9;margin-top:4px}
+button:focus-visible{outline:3px solid #d9772b;outline-offset:2px}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;width:min(420px,90vw)}
-.opts button{margin:0;font-size:28px;padding:20px 0;min-width:0}
+.opts button{margin:0;font-size:26px;padding:20px 6px;min-width:0;background:#fff;color:#2b1d12;border:2px solid #ead7b0;box-shadow:0 4px 0 #ead7b0}
 .hand{display:flex;gap:12px;justify-content:center;margin:10px 0 0}
-.hand div{background:#5a3b22;border-radius:14px;padding:10px 14px;font-size:18px}
-.ok{color:#9be37a}.no{color:#ff9a7a}
-.ov{justify-content:safe center}
-.daily{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d;width:min(420px,92vw);margin:8px 0 4px;font-size:26px}
-.daily small{display:block;font-size:16px;font-weight:400;margin-top:4px}
+.hand div{background:#fff8ea;border:2px solid #ead7b0;border-radius:14px;padding:10px 14px;font-size:18px}
+.ok{color:#2f6b2a}.no{color:#b4441a}
 .small{font-size:18px;padding:10px 18px;min-width:0}
-.fl{display:block;width:min(380px,90vw);text-align:left;font-size:20px;font-weight:700;margin:12px 0 0}
-.fl input{display:block;width:100%;box-sizing:border-box;font-size:26px;padding:12px 14px;border-radius:12px;border:2px solid #8f5214;background:#fbeed7;color:#2b1d12;margin-top:6px;font-family:inherit}
+.fl{display:block;width:min(380px,90vw);text-align:left;font-size:20px;font-weight:700;margin:14px 0 0}
+.fl input{display:block;width:100%;box-sizing:border-box;font-size:26px;padding:12px 14px;border-radius:12px;border:2px solid #d9c29a;background:#fff;color:#2b1d12;margin-top:6px;font-family:inherit}
 .agebox{display:flex;gap:8px;align-items:center;margin-top:6px}.agebox input{margin:0;text-align:center}.agebox button{margin:0;min-width:64px;padding:12px 0;font-size:30px}
-.seg{display:flex;gap:8px;margin-top:6px}.seg button{flex:1;margin:0;min-width:0;font-size:20px;padding:12px 0;background:#6b4a2e;box-shadow:0 4px 0 #3d2a19}.seg button.on{background:#e0892b;box-shadow:0 4px 0 #8f5214}
-.rec{width:min(420px,92vw);text-align:left}.rec h3{font-size:19px;color:#ffd58a;margin:16px 0 6px}
-.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.sum div{background:#5a3b22;border-radius:12px;padding:10px 4px;font-size:16px}.sum b{display:block;font-size:28px;color:#ffd58a}
-.rrow{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:18px}
-.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:16px}.bl{width:48px}.bt{flex:1;height:14px;background:#3d2a19;border-radius:7px;overflow:hidden}.bt i{display:block;height:100%;background:#e0892b}.bv{width:44px;text-align:right}
+.seg{display:flex;gap:8px;margin-top:6px}.seg button{flex:1;margin:0;min-width:0;font-size:19px;padding:12px 0;background:#fff;color:#2b1d12;border:2px solid #ead7b0;box-shadow:0 3px 0 #ead7b0;font-weight:700}
+.seg button.on{background:#2b1d12;color:#ffd58a;border-color:#2b1d12;box-shadow:0 3px 0 #120b06}
+.sect{width:min(380px,90vw);text-align:left;font-size:18px;font-weight:900;color:#8a4a1c;margin:26px 0 0;padding-top:16px;border-top:2px dashed #ead7b0}
+.rec{width:min(420px,92vw);text-align:left}.rec h3{font-size:19px;color:#8a4a1c;margin:18px 0 6px}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.sum div{background:#fff8ea;border:2px solid #ead7b0;border-radius:14px;padding:10px 4px;font-size:15px;color:#6b5236}.sum b{display:block;font-size:26px;color:#b4441a}
+.rrow{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid rgba(43,29,18,.12);font-size:18px}
+.bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:16px}.bl{width:48px;color:#6b5236}.bt{flex:1;height:14px;background:#ead7b0;border-radius:7px;overflow:hidden}.bt i{display:block;height:100%;background:#d9772b}.bv{width:44px;text-align:right;font-weight:700}
+.rcard{background:#fff;border:2px solid #ead7b0;border-radius:22px;box-shadow:0 5px 0 #ead7b0;padding:18px 20px;width:min(380px,90vw);box-sizing:border-box}
+body.bigtext .hbody,body.bigtext .ov>*{zoom:1.12}
+body.bigtext .hbody{max-width:calc(100vw / 1.12)}
+body.bigtext .ov .fl,body.bigtext .ov .sect,body.bigtext .ov .rcard,body.bigtext .ov .opts,body.bigtext .ov .rec{width:min(380px,calc(88vw / 1.12))}
+body.bigtext .ov #calibPad,body.bigtext .ov #cardImg{width:min(300px,calc(80vw / 1.12))}
 /* 홈 (A안) */
 .home{position:fixed;inset:0;display:flex;flex-direction:column;background:#fbf3e2;color:#2b1d12;font-family:'Noto Sans KR',-apple-system,"Apple SD Gothic Neo",sans-serif}
 .home.hidden{display:none}
@@ -120,14 +122,18 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
 </div>
 
 <div id="profOv" class="ov hidden">
-  <h2>👤 반가워요!</h2>
+  <h2 id="profTitle">반가워요!</h2>
   <p class="sub">회원가입 없이, 이 휴대폰에만 저장돼요</p>
   <label class="fl">별명<input id="pNick" maxlength="10" placeholder="예: 안양 김씨" autocomplete="off"></label>
   <div class="fl">나이<div class="agebox"><button id="ageMinus" class="alt">−</button><input id="pAge" type="number" inputmode="numeric" min="10" max="110" placeholder="65"><button id="agePlus" class="alt">＋</button></div></div>
   <div class="fl">성별 <span class="sub">(선택)</span><div class="seg" id="pGender"><button data-g="m">남자</button><button data-g="f">여자</button><button data-g="">안 알려줌</button></div></div>
   <button id="profSave" style="margin-top:20px">저장하고 시작</button>
   <button id="profSkip" class="alt small">나중에 할게요</button>
-  <button id="calibOpen" class="alt small" style="margin-top:18px">🎧 소리가 늦게 들리면? 박자 맞추기</button>
+  <div class="sect">설정</div>
+  <div class="fl">소리 크기<div class="seg" id="sVol"><button data-v="0.5">작게</button><button data-v="1">보통</button><button data-v="1.6">크게</button></div></div>
+  <div class="fl">글씨 크기<div class="seg" id="sBig"><button data-v="0">보통</button><button data-v="1">크게</button></div></div>
+  <div class="fl">진동 <span class="sub">(안드로이드)</span><div class="seg" id="sVib"><button data-v="1">켜기</button><button data-v="0">끄기</button></div></div>
+  <button id="calibOpen" class="alt small" style="margin-top:20px">소리가 늦게 들리면? 박자 맞추기</button>
   <p class="sub" id="offsetNow"></p>
 </div>
 
@@ -141,7 +147,7 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
   <h2>🎧 박자 맞추기</h2>
   <p>'똑' 소리가 들릴 때마다<br>아래 큰 버튼을 <b>톡</b> 눌러주세요</p>
   <p class="sub">화면보다 소리에 집중하세요 · 12번 울려요</p>
-  <button id="calibPad" style="width:min(320px,80vw);height:200px;font-size:34px;margin-top:16px">톡!</button>
+  <button id="calibPad" class="share" style="width:min(320px,80vw);height:200px;font-size:34px;margin-top:16px">톡!</button>
   <p id="calibMsg" class="big" style="min-height:70px"></p>
   <div>
     <button id="calibStart">시작</button>
@@ -158,10 +164,12 @@ button.share{background:#f2c94c;color:#3b2a10;box-shadow:0 4px 0 #a5821d}
 </div>
 
 <div id="resultOv" class="ov hidden">
-  <h2 id="rTitle"></h2>
-  <p id="rQuiz" class="big"></p>
-  <p id="rScore"></p>
-  <p id="rMsg"></p>
+  <div class="rcard">
+    <h2 id="rTitle" style="margin:0"></h2>
+    <p id="rQuiz" class="big" style="margin-top:10px"></p>
+    <p id="rScore" style="font-size:18px"></p>
+    <p id="rMsg" style="font-size:18px;font-weight:700;color:#8a4a1c"></p>
+  </div>
   <div>
     <button id="shareBtn" class="share">📣 자랑하기</button>
     <button id="againBtn">한 판 더</button>
@@ -193,16 +201,16 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const LEAD=1.9,WIN_PERF=0.08,WIN_GOOD=0.18;
 let ac=null,start=0,BEAT=0.625,END_T=40,notes=[],walkers=[],pops=[],sparks=[],state='idle',score,hammer={L:-9,R:-9},noiseBuf,stage=null,quiz=null,lastResult=null,errs=[];
-let DATA={profile:null,asked:false,history:[],best:{},streak:0,lastDate:'',plays:0};
+let DATA={profile:null,asked:false,history:[],best:{},streak:0,lastDate:'',plays:0,settings:{vol:1,big:0,vib:1}};let master=null;
 try{const v=JSON.parse(localStorage.getItem('gh_data'));if(v&&typeof v==='object')DATA=Object.assign(DATA,v);}catch(e){}
 function save(){try{localStorage.setItem('gh_data',JSON.stringify(DATA));}catch(e){}}
 let OFFSET=0;try{OFFSET=parseFloat(localStorage.getItem('gh_offset'))||0;}catch(e){}
 function now(){return ac?ac.currentTime-(ac.outputLatency||0)-start:-3;}
 function songT(){return now()-OFFSET;}
-function ensureAudio(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();noiseBuf=ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}ac.resume();}
+function ensureAudio(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();noiseBuf=ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;master=ac.createGain();master.gain.value=DATA.settings.vol;master.connect(ac.destination);}ac.resume();}
 
 // ===== 사운드 =====
-function env(node,t,v,d){const gn=ac.createGain();gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(v,t+0.008);gn.gain.exponentialRampToValueAtTime(0.0001,t+d);node.connect(gn).connect(ac.destination);}
+function env(node,t,v,d){const gn=ac.createGain();gn.gain.setValueAtTime(0.0001,t);gn.gain.exponentialRampToValueAtTime(v,t+0.008);gn.gain.exponentialRampToValueAtTime(0.0001,t+d);node.connect(gn).connect(master||ac.destination);}
 function tone(f,t,d,type,v){const o=ac.createOscillator();o.type=type||'triangle';o.frequency.value=f;env(o,t,v||0.12,d);o.start(t);o.stop(t+d+0.05);}
 function drum(t,f,v){const o=ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*0.5,t+0.18);env(o,t,v,0.28);o.start(t);o.stop(t+0.32);}
 function noise(t,type,freq,v,d){const s=ac.createBufferSource();s.buffer=noiseBuf;const f=ac.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=3;s.connect(f);env(f,t,v,d);s.start(t);s.stop(t+d+0.03);}
@@ -413,7 +421,7 @@ function buildNotes(){notes=[];stage.bars.forEach((bar,i)=>bar.forEach(([b,l])=>
 // ===== 입력 =====
 function hit(lane){if(state!=='play')return;hammer[lane]=performance.now();const st=songT();let best=null,bd=9;
   for(const n of notes){if(n.lane!==lane||n.done)continue;const d=st-n.t;if(Math.abs(d)<Math.abs(bd)){bd=d;best=n;}}
-  if(best&&Math.abs(bd)<=WIN_GOOD){best.done=true;const p=Math.abs(bd)<=WIN_PERF;best.res=p?'perfect':'good';score[best.res]++;errs.push(Math.abs(bd));stage.hitSound(p);
+  if(best&&Math.abs(bd)<=WIN_GOOD){best.done=true;const p=Math.abs(bd)<=WIN_PERF;best.res=p?'perfect':'good';score[best.res]++;errs.push(Math.abs(bd));if(DATA.settings.vib)try{navigator.vibrate&&navigator.vibrate(p?35:20);}catch(e){}stage.hitSound(p);
     pop(laneX[lane],hitY-90,stage.hitText[p?0:1],p?'#ffe27a':'#fff');for(let i=0;i<10;i++)sparks.push({x:laneX[lane],y:hitY-30,vx:rnd(-3,3),vy:rnd(-5,-1),life:1,c:stage.id==='nail'});}
   else{whiff();score.whiff++;}}
 cv.addEventListener('pointerdown',e=>{e.preventDefault();hit(e.clientX<W/2?'L':'R');});
@@ -450,8 +458,8 @@ function endGame(){state='quiz';$('qText').innerHTML=quiz.q;$('qSub').textConten
 function showResult(v){state='result';hideAll();const total=notes.length,acc=Math.max(0,Math.round((score.perfect+score.good*0.7)/total*100)-Math.max(0,score.whiff-5)),ok=v===quiz.answer;
   const rank=stage.ranks[acc>=85?0:acc>=60?1:2],age=quickAge(acc),P=DATA.profile||{},real=P.age||0,diff=real?real-age:0;
   lastResult={acc,ok,rank,stage,age,real,diff,nick:P.nick||''};const newBest=record(lastResult);
-  const ageLine=!real?'':diff>0?`<br><span style="font-size:22px;color:#9be37a">실제 ${real}세보다 ${diff}살 젊어요!</span>`:diff===0?'<br><span style="font-size:22px">실제 나이랑 똑같아요!</span>':'<br><span style="font-size:20px">다음 판엔 더 젊어질 거예요!</span>';
-  $('rTitle').innerHTML=`${rank}<br><span style="font-size:22px;color:#fbeed7">⚡ 재미로 보는 순발력 나이</span><br><span style="font-size:54px;color:#ffd58a">${age}세</span>${ageLine}`;
+  const ageLine=!real?'':diff>0?`<br><span style="font-size:21px;color:#2f6b2a">실제 ${real}세보다 ${diff}살 젊어요!</span>`:diff===0?'<br><span style="font-size:22px">실제 나이랑 똑같아요!</span>':'<br><span style="font-size:20px">다음 판엔 더 젊어질 거예요!</span>';
+  $('rTitle').innerHTML=`${rank}<br><span style="font-family:\'Noto Sans KR\',sans-serif;font-size:18px;color:#6b5236">⚡ 재미로 보는 순발력 나이</span><br><span style="font-size:60px;color:#b4441a">${age}세</span>${ageLine}`;
   $('rQuiz').innerHTML=ok?`<span class="ok">⭕ 정답! (${quiz.answerText})</span>`:`<span class="no">❌ 아쉬워요! 정답은 ${quiz.answerText}</span>`;
   $('rScore').innerHTML=`${stage.skill} 정확도 <b>${acc}점</b><br>${stage.hitText[0]} ${score.perfect} · 좋아요 ${score.good} · 아이고 ${score.miss}${score.whiff>5?` · 헛손질 ${score.whiff}`:''}`;
   $('rMsg').textContent=(newBest?'🎉 새 최고 기록! ':'')+(ok&&acc>=85?'손도 눈도 아주 좋으시네요!':ok?'눈썰미가 대단하세요! 손은 조금 더~':acc>=85?`${stage.skill}은 완벽! 다음엔 배경도 살펴보세요`:'한 판 더 하면 금방 늘어요!');
@@ -539,7 +547,7 @@ function renderStart(){const p=DATA.profile||{};$('greet').textContent=p.nick?`$
 $('dailyBtn').onclick=()=>startGame(dailyStage());
 // 프로필
 let gSel='';
-function openProfile(){const p=DATA.profile||{};$('pNick').value=p.nick||'';$('pAge').value=p.age||'';gSel=p.gender||'';
+function openProfile(){const p=DATA.profile||{};$('profTitle').textContent=DATA.profile?'내 정보':'반가워요!';$('profSave').textContent=DATA.profile?'저장':'저장하고 시작';applySettings();$('pNick').value=p.nick||'';$('pAge').value=p.age||'';gSel=p.gender||'';
   [...$('pGender').children].forEach(b=>b.classList.toggle('on',p.gender!==undefined&&b.dataset.g===gSel));hideAll();$('profOv').classList.remove('hidden');}
 $('profOpen').onclick=openProfile;
 $('pGender').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;gSel=b.dataset.g;[...$('pGender').children].forEach(x=>x.classList.toggle('on',x===b));});
@@ -557,6 +565,14 @@ function renderRec(){const h=DATA.history;
   $('recBody').innerHTML=html;}
 $('recOpen').onclick=()=>{renderRec();hideAll();$('recOv').classList.remove('hidden');};
 $('recClose').onclick=goHome;
+// 설정
+function markSeg(id,val){[...$(id).children].forEach(b=>b.classList.toggle('on',parseFloat(b.dataset.v)===val));}
+function applySettings(){const S=DATA.settings;document.body.classList.toggle('bigtext',!!S.big);if(master)master.gain.value=S.vol;markSeg('sVol',S.vol);markSeg('sBig',S.big);markSeg('sVib',S.vib);}
+function bindSeg(id,key,demo){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;DATA.settings[key]=parseFloat(b.dataset.v);save();applySettings();if(demo)demo();});}
+bindSeg('sVol','vol',()=>{ensureAudio();tone(880,ac.currentTime+0.02,0.18,'triangle',0.16);});
+bindSeg('sBig','big');
+bindSeg('sVib','vib',()=>{if(DATA.settings.vib)try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}});
+applySettings();
 // 첫 방문이면 프로필부터
 if(!DATA.profile&&!DATA.asked)openProfile();else renderStart();
 
